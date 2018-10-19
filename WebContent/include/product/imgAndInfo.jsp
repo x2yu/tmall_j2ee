@@ -69,6 +69,9 @@ $(function(){
         );     
         return false;
     });
+    
+    //模态登陆窗口
+    
     $(".buyLink").click(function(){
         var page = "forecheckLogin";
         $.get(
@@ -86,6 +89,9 @@ $(function(){
         return false;
     });
      
+    
+    //modal.jsp 页面被 footer.jsp 所包含
+    //登陆验证
     $("button.loginSubmitButton").click(function(){
         var name = $("#name").val();
         var password = $("#password").val();
