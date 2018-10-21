@@ -1,6 +1,7 @@
 package tmall.servlet;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -17,6 +18,11 @@ import tmall.bean.ProductImage;
 import tmall.bean.PropertyValue;
 import tmall.bean.Review;
 import tmall.bean.User;
+import tmall.comparator.ProductAllComparator;
+import tmall.comparator.ProductDateComparator;
+import tmall.comparator.ProductPriceComparator;
+import tmall.comparator.ProductReviewComparator;
+import tmall.comparator.ProductSaleCountComparator;
 import tmall.dao.CategoryDAO;
 import tmall.dao.ProductDAO;
 import tmall.dao.ProductImageDAO;
@@ -118,6 +124,52 @@ public class ForeServlet extends BaseForeServlet {
 		//将用户存入session
 		request.getSession().setAttribute("user", user);
 		return "%success";
+		
+	}
+	
+	//分类页
+	public String category(HttpServletRequest request,HttpServletResponse response,Page page) {
+		int cid = Integer.parseInt(request.getParameter("cid"));
+		Category c = new CategoryDAO().get(cid);
+		//为c填充包含的铲产品
+		new ProductDAO().fill(c);
+		new ProductDAO().setSaleAndReviewNUmber(c.getProducts());
+		
+		//如果sort==null，即不排序
+		//如果sort!=null，则根据sort的值，从5个Comparator比较器中选择一个对应的排序器进行排序
+		String sort = request.getParameter("sort");
+		if(null!=sort) {
+			switch (sort) {
+			case "review":
+				Collections.sort(c.getProducts(), new ProductReviewComparator());
+				break;
+			case "date":
+				Collections.sort(c.getProducts(), new ProductDateComparator());
+				break;
+			case "saleCount":
+				Collections.sort(c.getProducts(), new ProductSaleCountComparator());
+				break;
+			case "price":
+				Collections.sort(c.getProducts(), new ProductPriceComparator());
+				break;
+			case "all":
+				Collections.sort(c.getProducts(), new ProductAllComparator());
+				break;
+			default:
+				break;
+			}
+		}
+		request.setAttribute("c", c);
+		return "category.jsp";	
+	}
+	
+	//搜索功能实现
+	public String search(HttpServletRequest request,HttpServletResponse response,Page page) {
+		String keyword = request.getParameter("keyword");
+		List<Product> ps = new ProductDAO().search(keyword, 0, 20);
+		productDAO.setSaleAndReviewNUmber(ps);
+		request.setAttribute("ps", ps);
+		return "searchResult.jsp";
 		
 	}
 }
